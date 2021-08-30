@@ -17,15 +17,27 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 
-typedef struct s_philosopher
+typedef struct s_philo
 {
-	int identifier;
-	int time_eat;
-	int time_die;
-	int time_sleep;
-	int nbr_meals;
-} t_philosopher;
+	int id;
+	int left_fork;//id-1
+	int right_fork;//id
+	//pthread_mutex_t nbr;
+	pthread_t thread_id;
+} t_philo;
 
-int all_digits(int argc, char **argv);
+typedef struct s_rules
+{
+	int nbr_philo;
+	int time_to_eat;
+	int time_to_die;
+	int time_to_sleep;
+	int nbr_meals;
+	t_philo *philo;
+} t_rules;
+
+
+int valid_args(int argc, char **argv);
 #endif
