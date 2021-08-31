@@ -53,5 +53,7 @@ int valid_args(int argc, char **argv)
 	if (atoi(argv[1]) <= 2 || atoi(argv[2]) < 0 || atoi(argv[3]) < 0 ||
 		atoi(argv[4]) < 0)
 		return (0);
+	if (argc == 6 && atoi(argv[5]) < 0)
+		return (0);
 	return (1);
 }

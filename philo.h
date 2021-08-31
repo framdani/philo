@@ -19,25 +19,25 @@
 #include <string.h>
 #include <pthread.h>
 
-typedef struct s_philo
-{
-	int id;
-	int left_fork;//id-1
-	int right_fork;//id
-	//pthread_mutex_t nbr;
-	pthread_t thread_id;
-} t_philo;
-
-typedef struct s_rules
+typedef struct s_data
 {
 	int nbr_philo;
 	int time_to_eat;
 	int time_to_die;
 	int time_to_sleep;
-	int nbr_meals;
-	t_philo *philo;
-} t_rules;
+} t_data;
 
+typedef struct s_philo
+{
+	int id;
+	int left_fork;
+	int right_fork;
+	pthread_t thread_id;
+	int		nbr_meals;
+	t_data	data;
+	pthread_mutex_t *forks;
+	pthread_mutex_t *lock_write;
+} t_philo;
 
 int valid_args(int argc, char **argv);
 #endif
