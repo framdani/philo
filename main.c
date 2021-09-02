@@ -16,103 +16,97 @@
 #include <sys/_pthread/_pthread_mutex_t.h>
 #include <unistd.h>
 
-t_philo *init_struct(int argc, char **argv)
+t_data init_struct(int argc, char **argv)
 {
-	t_philo *philo;
 	t_data data;
+	t_philo *philo;
 	pthread_mutex_t *forks;
-	pthread_mutex_t write;
+	pthread_mutex_t *state = malloc(1*sizeof(pthread_mutex_t));
 	int i;
 
 	i = 0;
-	
-	pthread_mutex_init(&write, NULL);
-	forks = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) * data.nbr_philo);
-	while (i < atoi(argv[1]))
+	data.nbr_philo = atoi(argv[1]);
+	forks = (pthread_mutex_t *)malloc( data.nbr_philo * sizeof(pthread_mutex_t));
+	while (i < data.nbr_philo)
 	{
 		pthread_mutex_init(&forks[i], NULL);
-		//pthread_mutex_lock(&forks[i]);
 		i++;
 	}
-	data.nbr_philo = atoi(argv[1]);
-	data.time_to_die = atoi(argv[2]);
-	data.time_to_eat = atoi(argv[3]);
-	data.time_to_sleep = atoi(argv[4]);
-	philo = malloc(sizeof(t_philo) * data.nbr_philo);
+	philo = (t_philo *)malloc(data.nbr_philo * sizeof(t_philo));
 	i = 0;
 	while (i < data.nbr_philo)
 	{
+		philo[i].id = i + 1;
+		philo[i].time_to_die = atoi(argv[2]);
+		philo[i].time_to_eat = atoi(argv[3]);
+		philo[i].time_to_sleep = atoi(argv[4]);
 		philo[i].nbr_meals = -1;
-		philo[i].id = i;
-		philo[i].left_fork = i;
-		philo[i].right_fork = (i % data.nbr_philo) + 1;
 		if (argc == 6)
 			philo[i].nbr_meals = atoi(argv[5]);
-		philo[i].data = data;
+		philo[i].left_fork = i;
+		philo[i].right_fork = (i + 1) % data.nbr_philo;
 		philo[i].forks = forks;
-		philo[i].lock_write = &write;
-		//pthread_mutex_init(&philo[i].nbr_meals, NULL);
+		philo[i].state = state;
 		i++;
 	}
-	return (philo);
+	data.philo = philo;
+	return (data);
 }
 
-void *start_simulation(void *philo)
+void *routine(void *philo)
 {
-	int i;
-	t_philo *tmp;
+	t_philo *ph_one;
+	int tmp;
 
-	i = 0;
-	tmp = (t_philo *)philo;
-	//printf("%d\n", rules->nbr_philo);
-	//printf("%d\n", nbr_philo);
+	ph_one = (t_philo *)philo;
 	while (1)
 	{
-		if (tmp->nbr_meals == 0)
-			break;
-		pthread_mutex_lock(&tmp->forks[tmp->left_fork]);
-		pthread_mutex_lock(tmp->lock_write);
-		printf("Thread %d take a fork\n", tmp->id + 1);
-		pthread_mutex_unlock(tmp->lock_write);
-		pthread_mutex_lock(&tmp->forks[tmp->right_fork]);
-		pthread_mutex_lock(tmp->lock_write);
-		printf("Thread %d take a fork\n", tmp->id +1);
-		pthread_mutex_unlock(tmp->lock_write);
-		usleep(tmp->data.time_to_eat * 1000);
-		pthread_mutex_lock(tmp->lock_write);
-		printf("Thread %d is eating\n", tmp->id + 1);
-		pthread_mutex_unlock(tmp->lock_write);
-		tmp->nbr_meals--;
-		pthread_mutex_lock(tmp->lock_write);
-		printf("Thread %d is sleeping\n", tmp->id + 1);
-		pthread_mutex_unlock(tmp->lock_write);
-		usleep(tmp->data.time_to_sleep * 1000);
-		pthread_mutex_lock(tmp->lock_write);
-		printf("Thread %d is thinking\n", tmp->id + 1);
-		pthread_mutex_unlock(tmp->lock_write);
-		pthread_mutex_unlock(&tmp->forks[tmp->left_fork]);
-		pthread_mutex_unlock(&tmp->forks[tmp->right_fork]);
-		i++;
+		//everyone takes a fork
+		if (ph_one->id % 2 == 1)
+		{
+		pthread_mutex_lock(&ph_one->forks[ph_one->left_fork]);
+		printf("Thread %d has taken left fork (%d). \n", ph_one->id, ph_one->left_fork);
+		pthread_mutex_lock(&ph_one->forks[ph_one->right_fork]);
+		printf("Thread %d has taken right fork. (%d)\n", ph_one->id, ph_one->right_fork);
+		}
+		else {
+		
+		pthread_mutex_lock(&ph_one->forks[ph_one->right_fork]);
+		printf("Thread %d has taken left fork (%d). \n", ph_one->id, ph_one->right_fork);
+		pthread_mutex_lock(&ph_one->forks[ph_one->left_fork]);
+		printf("Thread %d has taken a fork. (%d)\n", ph_one->id, ph_one->left_fork);
+		printf("Thread %d is eating.\n", ph_one->id);
+		}
+		usleep(ph_one->time_to_eat * 1000);
+		pthread_mutex_unlock(&ph_one->forks[ph_one->right_fork]);
+		pthread_mutex_unlock(&ph_one->forks[ph_one->left_fork]);
+		usleep(ph_one->time_to_sleep * 1000);
+		
+		//pthread_mutex_lock(ph_one->state);
+		//printf("Thread %d is eating. \n", ph_one->id);
+		//pthread_mutex_unlock(ph_one->state);
 	}
 	return (NULL);
 }
 
-void create_threads(t_philo *philo)
+void start_simulation(t_data *data)
 {
 	int i;
-	t_data data;
+	t_philo *philo;
 
-	data = philo->data;
+	philo = data->philo;
 	i = 0;
-	while (i < data.nbr_philo)
+	while (i < data->nbr_philo)
 	{
 		//we don't know which philo we're talking about
-		pthread_create(&philo[i].thread_id, NULL, &start_simulation, (void *)&philo[i]);
-		usleep(100);
+		pthread_create(&philo[i].thread_id, NULL, &routine, &philo[i]);
+		//usleep(100);
+		//continue the execution
+		//printf("Thread %d is created \n", i+1);
 		i++;
 	}
 	i = 0;
-	while (i < data.nbr_philo)
+	while (i < data->nbr_philo)
 	{
 		pthread_join(philo[i].thread_id, NULL);
 		i++;
@@ -121,15 +115,16 @@ void create_threads(t_philo *philo)
 
 int main(int argc, char **argv)
 {
-	t_philo *philo;
+	t_data data;
 
 	if (!valid_args(argc, argv))
 		printf("Error : invalid arguments.\n");
 	else
 	{
-		philo = init_struct(argc, argv);
+		//pthread_mutex_init(&check_meal, NULL);
+		data = init_struct(argc, argv);
 		//init forks
-		create_threads(philo);
+		start_simulation(&data); // initialize last-meal
 		//pthread_mutex_destroy(rules.forks);
 		//free_all_before_exit
 	}

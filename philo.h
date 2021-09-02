@@ -15,17 +15,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/_pthread/_pthread_mutex_t.h>
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
-
-typedef struct s_data
-{
-	int nbr_philo;
-	int time_to_eat;
-	int time_to_die;
-	int time_to_sleep;
-} t_data;
 
 typedef struct s_philo
 {
@@ -33,11 +26,19 @@ typedef struct s_philo
 	int left_fork;
 	int right_fork;
 	pthread_t thread_id;
-	int		nbr_meals;
-	t_data	data;
+	int	 nbr_meals;
 	pthread_mutex_t *forks;
-	pthread_mutex_t *lock_write;
+	int time_to_eat;
+	int time_to_sleep;
+	int time_to_die;
+	pthread_mutex_t *state;
 } t_philo;
+
+typedef struct s_data
+{
+	t_philo *philo;
+	int nbr_philo;
+}t_data;
 
 int valid_args(int argc, char **argv);
 #endif
