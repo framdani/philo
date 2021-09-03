@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 typedef struct s_philo
 {
@@ -31,6 +32,7 @@ typedef struct s_philo
 	int time_to_eat;
 	int time_to_sleep;
 	int time_to_die;
+	pthread_mutex_t write;
 	pthread_mutex_t *state;
 } t_philo;
 
@@ -41,4 +43,5 @@ typedef struct s_data
 }t_data;
 
 int valid_args(int argc, char **argv);
+unsigned long long get_current_time();
 #endif

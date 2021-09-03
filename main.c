@@ -16,17 +16,30 @@
 #include <sys/_pthread/_pthread_mutex_t.h>
 #include <unistd.h>
 
+void print_status(char *status, t_philo *philo)
+{
+	pthread_mutex_lock(&philo->write);//I need to change time
+	printf("Thread %d %s\n", philo->id, status);
+	pthread_mutex_unlock(&philo->write);
+//lock write
+//print philo.id
+//print currrent_time
+//unlock write
+}
+
 t_data init_struct(int argc, char **argv)
 {
 	t_data data;
 	t_philo *philo;
 	pthread_mutex_t *forks;
+	pthread_mutex_t write;
 	pthread_mutex_t *state = malloc(1*sizeof(pthread_mutex_t));
 	int i;
 
 	i = 0;
 	data.nbr_philo = atoi(argv[1]);
 	forks = (pthread_mutex_t *)malloc( data.nbr_philo * sizeof(pthread_mutex_t));
+	pthread_mutex_init(&write, NULL);
 	while (i < data.nbr_philo)
 	{
 		pthread_mutex_init(&forks[i], NULL);
@@ -47,6 +60,7 @@ t_data init_struct(int argc, char **argv)
 		philo[i].right_fork = (i + 1) % data.nbr_philo;
 		philo[i].forks = forks;
 		philo[i].state = state;
+		philo[i].write = write;
 		i++;
 	}
 	data.philo = philo;
@@ -56,27 +70,38 @@ t_data init_struct(int argc, char **argv)
 void *routine(void *philo)
 {
 	t_philo *ph_one;
-	int tmp;
+	//int tmp;
+//	int swap = 0;
 
 	ph_one = (t_philo *)philo;
 	while (1)
 	{
 		//everyone takes a fork
-		if (ph_one->id % 2 == 1)
+		if (ph_one->id % 2 != 0)
+		//if (swap == 0)
 		{
 		pthread_mutex_lock(&ph_one->forks[ph_one->left_fork]);
-		printf("Thread %d has taken left fork (%d). \n", ph_one->id, ph_one->left_fork);
+		print_status("has taken a fork", ph_one);
+		//printf("Thread %d has taken left fork (%d). \n", ph_one->id, ph_one->left_fork);
 		pthread_mutex_lock(&ph_one->forks[ph_one->right_fork]);
-		printf("Thread %d has taken right fork. (%d)\n", ph_one->id, ph_one->right_fork);
+		print_status("has taken a fork", ph_one);
+		//printf("Thread %d has taken right fork. (%d)\n", ph_one->id, ph_one->right_fork);
+		//printf("Thread %d is eating.\n", ph_one->id);
+		print_status("is eating", ph_one);
+	//	swap = 1;
 		}
 		else {
 		
 		pthread_mutex_lock(&ph_one->forks[ph_one->right_fork]);
-		printf("Thread %d has taken left fork (%d). \n", ph_one->id, ph_one->right_fork);
+		print_status("has taken a fork", ph_one);
+		//printf("Thread %d has taken left fork (%d). \n", ph_one->id, ph_one->right_fork);
 		pthread_mutex_lock(&ph_one->forks[ph_one->left_fork]);
-		printf("Thread %d has taken a fork. (%d)\n", ph_one->id, ph_one->left_fork);
-		printf("Thread %d is eating.\n", ph_one->id);
+		print_status("has taken a fork", ph_one);
+		//printf("Thread %d has taken a fork. (%d)\n", ph_one->id, ph_one->left_fork);
+		//printf("Thread %d is eating.\n", ph_one->id);
+		print_status("is eating", ph_one);
 		}
+	//	swap = 1;
 		usleep(ph_one->time_to_eat * 1000);
 		pthread_mutex_unlock(&ph_one->forks[ph_one->right_fork]);
 		pthread_mutex_unlock(&ph_one->forks[ph_one->left_fork]);
@@ -117,6 +142,7 @@ int main(int argc, char **argv)
 {
 	t_data data;
 
+	printf("%llu\n", get_current_time());
 	if (!valid_args(argc, argv))
 		printf("Error : invalid arguments.\n");
 	else
