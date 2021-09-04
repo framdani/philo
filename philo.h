@@ -32,7 +32,10 @@ typedef struct s_philo
 	int time_to_eat;
 	int time_to_sleep;
 	int time_to_die;
+	unsigned long long start_time;
+	unsigned long long last_meal;
 	pthread_mutex_t write;
+	pthread_mutex_t eat;
 	pthread_mutex_t *state;
 } t_philo;
 
