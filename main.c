@@ -75,18 +75,39 @@ t_data init_struct(int argc, char **argv)
 	return (data);
 }
 
-void starvation_check(t_data *data)
+void *is_starving(void *all)
 {
 	int i;
-	unsigned long long current = get_current_time();
-
+	t_data *data;
+	data = (t_data *)all;
 	i = 0;
 	while (i < data->nbr_philo)
 	{
-		if (current - data->philo[i].last_meal >= data->philo[i].time_to_die)
+		if (get_current_time() - data->philo[i].last_meal >= data->philo[i].time_to_die)
+		{
 			print_status("died", &data->philo[i]);
+			return (NULL);
+		}
 		i++;
 	}
+	return (NULL);
+}
+
+void switch_fork(t_philo *ph_one,int first_fork, int second_fork)
+{
+	pthread_mutex_lock(&ph_one->forks[first_fork]);
+	print_status("has taken a fork", ph_one);
+	pthread_mutex_lock(&ph_one->forks[second_fork]);
+	print_status("has taken a fork", ph_one);
+	print_status("is eating", ph_one);
+}
+
+void avoid_decalage(long long t_sleep)
+{
+	long long start = get_current_time();
+	do {
+		usleep(10);
+	}while (get_current_time() - start < t_sleep);	
 }
 
 void *routine(void *philo)
@@ -94,35 +115,27 @@ void *routine(void *philo)
 	t_philo *ph_one;
 
 	ph_one = (t_philo *)philo;
-	while (1)
-	{//if ph->nbr_meal = nbr_meals
+	while (ph_one->nbr_meals == -1 || ph_one->nbr_meals != 0)
+	{
 		//everyone takes a fork
-		if (ph_one->id % 2 != 0)//this is not a valid solution
-		{	
-			pthread_mutex_lock(&ph_one->forks[ph_one->left_fork]);
-			print_status("has taken a left fork", ph_one);
-			pthread_mutex_lock(&ph_one->forks[ph_one->right_fork]);
-			print_status("has taken a right fork", ph_one);
-			print_status("is eating", ph_one);
-		}
+		if (ph_one->id % 2)//this is not a valid solution
+			switch_fork(ph_one, ph_one->left_fork, ph_one->right_fork);
 		else
-		{
-			pthread_mutex_lock(&ph_one->forks[ph_one->right_fork]);
-			print_status("has taken a right fork", ph_one);
-			pthread_mutex_lock(&ph_one->forks[ph_one->left_fork]);
-			print_status("has taken a left fork", ph_one);
-			print_status("is eating", ph_one);
-		}
+			switch_fork(ph_one, ph_one->right_fork, ph_one->left_fork);
 		//update the time of last_time_eat
 		pthread_mutex_lock(&ph_one->eat);
 		ph_one->last_meal = get_current_time();
+		//update number of meals taken for each philo
+		if (ph_one->nbr_meals != -1)
+			(ph_one->nbr_meals)--;
 		pthread_mutex_unlock(&ph_one->eat);
-		usleep(ph_one->time_to_eat * 1000);
+
+		avoid_decalage(ph_one->time_to_eat); //convert ms en us
 		pthread_mutex_unlock(&ph_one->forks[ph_one->right_fork]);
 		pthread_mutex_unlock(&ph_one->forks[ph_one->left_fork]);
-		/*print_status("is sleeping", ph_one);
-		usleep(ph_one->time_to_sleep * 1000);
-		print_status("is thinking", ph_one);*/
+		print_status("is sleeping", ph_one);
+		avoid_decalage(ph_one->time_to_sleep);
+		print_status("is thinking", ph_one);
 	}
 	return (NULL);
 }
@@ -131,15 +144,14 @@ void start_simulation(t_data *data)
 {
 	int i;
 	t_philo *philo;
+	pthread_t t;
 
 	philo = data->philo;
 	i = 0;
 	while (i < data->nbr_philo)
 	{
-		philo[i].start_time = get_current_time();
+		philo[i].start_time = get_current_time();//ms
 			pthread_create(&philo[i].thread_id, NULL, &routine, &philo[i]);
-		//continue the execution
-		//printf("Thread %d is created \n", i+1);
 		i++;
 	}
 	i = 0;
@@ -169,3 +181,4 @@ int main(int argc, char **argv)
 //they wait then which conclude to starving
 //next_step => starvation check
 //			=> check if all the philos already take the meal
+//delete decalage 
