@@ -75,22 +75,13 @@ t_data init_struct(int argc, char **argv)
 	return (data);
 }
 
-void *is_starving(void *all)
+void is_starving(t_philo *ph_one)
 {
-	int i;
-	t_data *data;
-	data = (t_data *)all;
-	i = 0;
-	while (i < data->nbr_philo)
+
+	if (get_current_time() - ph_one->last_meal >= ph_one->time_to_die)
 	{
-		if (get_current_time() - data->philo[i].last_meal >= data->philo[i].time_to_die)
-		{
-			print_status("died", &data->philo[i]);
-			return (NULL);
-		}
-		i++;
+		print_status("died", ph_one);
 	}
-	return (NULL);
 }
 
 void switch_fork(t_philo *ph_one,int first_fork, int second_fork)
@@ -102,7 +93,7 @@ void switch_fork(t_philo *ph_one,int first_fork, int second_fork)
 	print_status("is eating", ph_one);
 }
 
-void avoid_decalage(long long t_sleep)
+void sleep_without_decalage(long long t_sleep)
 {
 	long long start = get_current_time();
 	do {
@@ -123,18 +114,20 @@ void *routine(void *philo)
 		else
 			switch_fork(ph_one, ph_one->right_fork, ph_one->left_fork);
 		//update the time of last_time_eat
+		sleep_without_decalage(ph_one->time_to_eat); //convert ms en us
+		pthread_mutex_unlock(&ph_one->forks[ph_one->right_fork]);
+		pthread_mutex_unlock(&ph_one->forks[ph_one->left_fork]);
 		pthread_mutex_lock(&ph_one->eat);
 		ph_one->last_meal = get_current_time();
 		//update number of meals taken for each philo
 		if (ph_one->nbr_meals != -1)
 			(ph_one->nbr_meals)--;
 		pthread_mutex_unlock(&ph_one->eat);
-
-		avoid_decalage(ph_one->time_to_eat); //convert ms en us
-		pthread_mutex_unlock(&ph_one->forks[ph_one->right_fork]);
-		pthread_mutex_unlock(&ph_one->forks[ph_one->left_fork]);
+		//sleep_without_decalage(ph_one->time_to_eat); //convert ms en us
+		//pthread_mutex_unlock(&ph_one->forks[ph_one->right_fork]);
+	//	pthread_mutex_unlock(&ph_one->forks[ph_one->left_fork]);
 		print_status("is sleeping", ph_one);
-		avoid_decalage(ph_one->time_to_sleep);
+		sleep_without_decalage(ph_one->time_to_sleep);
 		print_status("is thinking", ph_one);
 	}
 	return (NULL);
@@ -181,4 +174,4 @@ int main(int argc, char **argv)
 //they wait then which conclude to starving
 //next_step => starvation check
 //			=> check if all the philos already take the meal
-//delete decalage 
+//delete decalage => done 
