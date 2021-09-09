@@ -6,7 +6,7 @@
 /*   By: framdani <framdani@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/07 17:26:52 by framdani          #+#    #+#             */
-/*   Updated: 2021/09/09 18:03:08 by framdani         ###   ########.fr       */
+/*   Updated: 2021/09/09 18:12:21 by framdani         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,13 @@ void	print_status(char *status, t_philo *philo)
 	timestamp = get_current_time() - philo->start_time;
 	printf("%llu %d %s\n", timestamp, philo->id, status);
 	if (status[0] != 'd')
-		pthread_mutex_unlock(philo->write);
+	{
+		if (pthread_mutex_unlock(philo->write))
+		{
+			printf("unlock failed\n");
+			return ;
+		}
+	}
 }
 
 void	ft_think(t_philo *philo)
