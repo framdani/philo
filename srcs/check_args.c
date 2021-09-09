@@ -6,11 +6,11 @@
 /*   By: framdani <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/29 17:46:52 by framdani          #+#    #+#             */
-/*   Updated: 2021/09/07 16:18:55 by framdani         ###   ########.fr       */
+/*   Updated: 2021/09/09 17:30:30 by framdani         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../includes/philo.h"
 
 int	ft_strlen(char *str)
 {

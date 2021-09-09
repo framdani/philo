@@ -6,11 +6,11 @@
 /*   By: framdani <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 17:54:25 by framdani          #+#    #+#             */
-/*   Updated: 2021/09/07 17:22:20 by framdani         ###   ########.fr       */
+/*   Updated: 2021/09/09 17:32:32 by framdani         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../includes/philo.h"
 
 unsigned long long	get_current_time(void)
 {
@@ -25,7 +25,7 @@ void	sleep_without_decalage(int t_sleep)
 	unsigned long long	start;
 
 	start = get_current_time();
-	usleep(10);
-	while (get_current_time() - start < t_sleep)
-		usleep(10);
+	usleep(100);
+	while (get_current_time() - start < (unsigned long long)t_sleep)
+		usleep(100);
 }

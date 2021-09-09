@@ -3,30 +3,30 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: framdani <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: framdani <framdani@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/29 17:41:14 by framdani          #+#    #+#             */
-/*   Updated: 2021/09/07 18:10:39 by framdani         ###   ########.fr       */
+/*   Updated: 2021/09/09 18:03:28 by framdani         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
-#include <pthread.h>
+#include "../includes/philo.h"
 
 void	*routine(void *philo)
 {
 	t_philo		*ph_one;
-	pthread_t	t;
 
 	ph_one = (t_philo *)philo;
-	while (1)
+	if (ph_one->id % 2 == 0)
+		usleep(200);
+	while (ph_one->nbr_meals != 0)
 	{
 		ft_eat(ph_one);
 		pthread_mutex_lock(ph_one->eat);
 		if (ph_one->nbr_meals != -1)
 			(ph_one->count)++;
-		pthread_mutex_unlock(ph_one->eat);
 		ph_one->busy = 0;
+		pthread_mutex_unlock(ph_one->eat);
 		ft_sleep(ph_one);
 		ft_think(ph_one);
 	}
@@ -42,10 +42,12 @@ int	meal_check(t_data *data)
 	count = 0;
 	while (data->philo[0].nbr_meals != -1 && i < data->nbr_philo)
 	{
-		pthread_mutex_lock(data->philo[i].eat);
+		if (pthread_mutex_lock(data->philo[i].eat))
+			return (error_mutex(data, "lock failed"));
 		if (data->philo[i].count >= data->philo[i].nbr_meals)
 			count++;
-		pthread_mutex_unlock(data->philo[i].eat);
+		if (pthread_mutex_unlock(data->philo[i].eat))
+			return (error_mutex(data, "unlock failed"));
 		if (count == data->nbr_philo)
 			return (1);
 		i++;
@@ -62,12 +64,17 @@ int	check_end_simulation(t_data *data)
 	count = 0;
 	while (++i < data->nbr_philo)
 	{
+		if (pthread_mutex_lock(data->philo[i].eat))
+			return (error_mutex(data, "lock failed"));
 		if (get_current_time() - data->philo[i].last_meal
-			>= data->philo[i].time_to_die && !data->philo->busy)
+			> (unsigned long long)data->philo[i].time_to_die
+			&& !data->philo[i].busy)
 		{
 			print_status("died", &data->philo[i]);
 			return (1);
 		}
+		if (pthread_mutex_unlock(data->philo[i].eat))
+			return (error_mutex(data, "lock failed"));
 	}
 	return (meal_check(data));
 }
@@ -82,7 +89,11 @@ void	start_simulation(t_data *data)
 	while (i < data->nbr_philo)
 	{
 		philo[i].start_time = get_current_time();
-		pthread_create(&philo[i].thread_id, NULL, &routine, &philo[i]);
+		if (pthread_create(&philo[i].thread_id, NULL, &routine, &philo[i]))
+		{
+			ft_error(data, "pthread create failed!");
+			return ;
+		}
 		i++;
 	}
 	while (1)
@@ -94,7 +105,7 @@ void	start_simulation(t_data *data)
 
 int	main(int argc, char **argv)
 {
-	t_data	data;
+	t_data	*data;
 	int		i;
 
 	i = 0;
@@ -103,10 +114,9 @@ int	main(int argc, char **argv)
 	else
 	{
 		data = init_struct(argc, argv);
-		start_simulation(&data);
-		//all the threads are close=>avoid threads leak
-		//free all the pthread allocated
-	//	end_simulation(&data);
+		if (!data)
+			return (1);
+		start_simulation(data);
 	}
 	return (0);
 }

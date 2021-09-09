@@ -3,20 +3,24 @@
 /*                                                        :::      ::::::::   */
 /*   actions.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: framdani <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: framdani <framdani@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/07 17:26:52 by framdani          #+#    #+#             */
-/*   Updated: 2021/09/07 17:59:05 by framdani         ###   ########.fr       */
+/*   Updated: 2021/09/09 18:03:08 by framdani         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../includes/philo.h"
 
 void	print_status(char *status, t_philo *philo)
 {
 	unsigned long long	timestamp;
 
-	pthread_mutex_lock(philo->write);
+	if (pthread_mutex_lock(philo->write))
+	{
+		printf("Lock failed\n");
+		return ;
+	}
 	timestamp = get_current_time() - philo->start_time;
 	printf("%llu %d %s\n", timestamp, philo->id, status);
 	if (status[0] != 'd')
@@ -36,9 +40,17 @@ void	ft_sleep(t_philo *philo)
 
 void	switch_fork(t_philo *ph_one, int first_fork, int second_fork)
 {
-	pthread_mutex_lock(&ph_one->forks[first_fork]);
+	if (pthread_mutex_lock(&ph_one->forks[first_fork]))
+	{
+		printf("lock failed\n");
+		return ;
+	}
 	print_status("has taken a fork", ph_one);
-	pthread_mutex_lock(&ph_one->forks[second_fork]);
+	if (pthread_mutex_lock(&ph_one->forks[second_fork]))
+	{
+		printf("lock failed\n");
+		return ;
+	}
 	print_status("has taken a fork", ph_one);
 	print_status("is eating", ph_one);
 	ph_one->last_meal = get_current_time();
@@ -48,13 +60,11 @@ void	switch_fork(t_philo *ph_one, int first_fork, int second_fork)
 
 void	ft_eat(t_philo *philo)
 {
-	if (philo->id % 2 == 0)
-		switch_fork(philo, philo->l_fork, philo->r_fork);
-	else
+	switch_fork(philo, philo->l_fork, philo->r_fork);
+	if (pthread_mutex_unlock(&philo->forks[philo->l_fork])
+		|| pthread_mutex_unlock(&philo->forks[philo->r_fork]))
 	{
-		usleep(100);
-		switch_fork(philo, philo->r_fork, philo->l_fork);
+		printf("unlock failed\n");
+		return ;
 	}
-	pthread_mutex_unlock(&philo->forks[philo->l_fork]);
-	pthread_mutex_unlock(&philo->forks[philo->r_fork]);
 }
