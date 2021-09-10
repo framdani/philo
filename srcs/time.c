@@ -6,7 +6,7 @@
 /*   By: framdani <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 17:54:25 by framdani          #+#    #+#             */
-/*   Updated: 2021/09/09 17:32:32 by framdani         ###   ########.fr       */
+/*   Updated: 2021/09/10 12:54:48 by framdani         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ unsigned long long	get_current_time(void)
 	return ((current_time.tv_sec * 1000) + (current_time.tv_usec * 0.001));
 }
 
-void	sleep_without_decalage(int t_sleep)
+void	sleep_without_delay(int t_sleep)
 {
 	unsigned long long	start;
 

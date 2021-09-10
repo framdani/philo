@@ -6,11 +6,12 @@
 /*   By: framdani <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/30 13:31:16 by framdani          #+#    #+#             */
-/*   Updated: 2021/09/09 17:29:49 by framdani         ###   ########.fr       */
+/*   Updated: 2021/09/10 17:34:58 by framdani         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/philo.h"
+#include <pthread.h>
 
 t_philo	*init_philosphers(int argc, char **argv)
 {
@@ -36,7 +37,6 @@ t_philo	*init_philosphers(int argc, char **argv)
 		philo[i].l_fork = i;
 		philo[i].r_fork = (i + 1) % nbr_philo;
 		philo[i].busy = 0;
-		philo[i].last_meal = get_current_time();
 	}
 	return (philo);
 }
@@ -59,31 +59,29 @@ pthread_mutex_t	*init_forks(int nbr_philo)
 	return (forks);
 }
 
-t_data	*init_struct(int argc, char **argv)
+t_data	*init_struct(t_data *data, int argc, char **argv)
 {
-	t_data			*data;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	*write;
 	pthread_mutex_t	*eat;
 	int				i;
 
-	data = malloc(sizeof(t_data));
-	if (!data)
-		return (ft_error(data, "Malloc failed"));
 	data->nbr_philo = ft_atoi(argv[1]);
 	data->philo = init_philosphers(argc, argv);
 	write = malloc(sizeof(pthread_mutex_t));
-	eat = malloc(sizeof(pthread_mutex_t));
 	forks = init_forks(data->nbr_philo);
-	if (!write || !eat || pthread_mutex_init(write, NULL)
-		|| pthread_mutex_init(eat, NULL) || !forks || !data->philo)
-		return (ft_error(data, "pthread mutex init/ malloc failed !"));
+	eat = malloc(sizeof(pthread_mutex_t) * data->nbr_philo);
+	if (!eat || !write || pthread_mutex_init(write, NULL)
+		|| !forks || !data->philo)
+		return (init_errors(data, write, forks, eat));
 	i = -1;
 	while (++i < data->nbr_philo)
 	{
+		if (pthread_mutex_init(&eat[i], NULL))
+			return (init_errors(data, write, forks, eat));
 		data->philo[i].forks = forks;
 		data->philo[i].write = write;
-		data->philo[i].eat = eat;
+		data->philo[i].eat = eat[i];
 	}
 	return (data);
 }
