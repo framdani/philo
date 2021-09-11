@@ -1,12 +1,12 @@
 CC= gcc
 
-CFLAGS = -Wall -Wextra -Werror -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror
 
 SRCS = srcs/main.c\
 		srcs/init.c\
 		srcs/time.c\
 		srcs/check_args.c\
-		srcs/actions.c\
+		srcs/philo_life_cycle.c\
 		srcs/exit.c
 
 NAME = philo

@@ -22,11 +22,9 @@ void	*routine(void *philo)
 	while (ph_one->nbr_meals != 0)
 	{
 		ft_eat(ph_one);
-		if (ph_one->nbr_meals != -1)
-			ph_one->count++;
+		ph_one->count++;
 		ph_one->busy = 0;
 		ft_sleep(ph_one);
-		ft_think(ph_one);
 	}
 	return (NULL);
 }
@@ -57,15 +55,17 @@ int	check_end_simulation(t_data *data)
 	i = -1;
 	count = 0;
 	while (++i < data->nbr_philo)
-	{
-		if (get_current_time() - data->philo[i].last_meal
-			> (unsigned long long)data->philo[i].time_to_die
-			&& !data->philo[i].busy)
+	{	
+		if (!data->philo[i].busy)
 		{
-			pthread_mutex_lock(&data->philo[i].eat);
-			print_status("died", &data->philo[i]);
-			pthread_mutex_unlock(&data->philo[i].eat);
-			return (1);
+			if (get_current_time() - data->philo[i].last_meal
+				>= (unsigned long long)data->philo[i].time_to_die)
+			{
+				pthread_mutex_lock(data->philo[i].eat);
+				print_status("died", &data->philo[i]);
+				pthread_mutex_unlock(data->philo[i].eat);
+				return (1);
+			}
 		}
 	}
 	return (meal_check(data));
@@ -106,7 +106,10 @@ int	main(int argc, char **argv)
 	{
 		data = malloc(sizeof(t_data));
 		if (!data)
+		{
+			printf("Malloc failed\n");
 			return (1);
+		}
 		data = init_struct(data, argc, argv);
 		if (!data)
 			return (1);

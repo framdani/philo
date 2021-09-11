@@ -35,7 +35,7 @@ typedef struct s_philo
 	int					busy;
 	unsigned long long	start_time;
 	unsigned long long	last_meal;
-	pthread_mutex_t		eat;
+	pthread_mutex_t		*eat;
 	pthread_mutex_t		*write;
 }	t_philo;
 
@@ -54,13 +54,8 @@ t_data				*init_struct(t_data *data, int argc, char **argv);
 void				print_status(char *status, t_philo *philo);
 void				switch_fork(t_philo *ph_one,
 						int first_fork, int second_fork);
-void				ft_think(t_philo *philo);
 void				ft_sleep(t_philo *philo);
 void				ft_eat(t_philo *philo);
-void				*routine(void *philo);
-void				start_simulation(t_data *data);
-void				end_simulation(t_data *data);
-int					error_mutex(t_data *data, char *str);
 void				*init_errors(t_data *data, pthread_mutex_t *w,
 						pthread_mutex_t *forks, pthread_mutex_t *eat);
 #endif

@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "../includes/philo.h"
-#include <pthread.h>
 
 t_philo	*init_philosphers(int argc, char **argv)
 {
@@ -81,7 +80,7 @@ t_data	*init_struct(t_data *data, int argc, char **argv)
 			return (init_errors(data, write, forks, eat));
 		data->philo[i].forks = forks;
 		data->philo[i].write = write;
-		data->philo[i].eat = eat[i];
+		data->philo[i].eat = &eat[i];
 	}
 	return (data);
 }

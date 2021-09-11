@@ -6,11 +6,12 @@
 /*   By: framdani <framdani@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/08 16:30:19 by framdani          #+#    #+#             */
-/*   Updated: 2021/09/10 17:31:29 by framdani         ###   ########.fr       */
+/*   Updated: 2021/09/11 13:28:10 by framdani         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/philo.h"
+#include <pthread.h>
 
 void	*init_errors(t_data *data, pthread_mutex_t *w, pthread_mutex_t *forks,
 		pthread_mutex_t *eat)
