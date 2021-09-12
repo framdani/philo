@@ -45,17 +45,30 @@ typedef struct s_data
 	int		nbr_philo;
 }t_data;
 
+/*
+ * parsing : check for errors && init struct
+ */
+
+long long			ft_atoi(const char *str);
 int					valid_args(int argc, char **argv);
+t_data				*init_struct(t_data *data, int argc, char **argv);
+void				*init_errors(t_data *data, pthread_mutex_t *w,
+		pthread_mutex_t *forks, pthread_mutex_t *eat);
+
+/*
+ * Life cycle of a philosopher
+ */
+
+void				ft_eat(t_philo *philo);
+void				ft_sleep(t_philo *philo);
+void				ft_think(t_philo *philo);
+
+/*
+ * helpers && time functions
+ */
+
 unsigned long long	get_current_time(void);
 void				sleep_without_delay(int t_sleep);
-int					ft_strlen(char *str);
-long long			ft_atoi(const char *str);
-t_data				*init_struct(t_data *data, int argc, char **argv);
 void				print_status(char *status, t_philo *philo);
-void				switch_fork(t_philo *ph_one,
-						int first_fork, int second_fork);
-void				ft_sleep(t_philo *philo);
-void				ft_eat(t_philo *philo);
-void				*init_errors(t_data *data, pthread_mutex_t *w,
-						pthread_mutex_t *forks, pthread_mutex_t *eat);
+
 #endif

@@ -22,9 +22,8 @@ void	*routine(void *philo)
 	while (ph_one->nbr_meals != 0)
 	{
 		ft_eat(ph_one);
-		ph_one->count++;
-		ph_one->busy = 0;
 		ft_sleep(ph_one);
+		ft_think(ph_one);
 	}
 	return (NULL);
 }
@@ -47,7 +46,7 @@ int	meal_check(t_data *data)
 	return (0);
 }
 
-int	check_end_simulation(t_data *data)
+int	end_simulation(t_data *data)
 {
 	int		i;
 	int		count;
@@ -63,7 +62,6 @@ int	check_end_simulation(t_data *data)
 			{
 				pthread_mutex_lock(data->philo[i].eat);
 				print_status("died", &data->philo[i]);
-				pthread_mutex_unlock(data->philo[i].eat);
 				return (1);
 			}
 		}
@@ -91,7 +89,7 @@ void	start_simulation(t_data *data)
 	}
 	while (1)
 	{
-		if (check_end_simulation(data))
+		if (end_simulation(data))
 			break ;
 	}
 }

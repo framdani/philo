@@ -19,8 +19,7 @@ void	print_status(char *status, t_philo *philo)
 	pthread_mutex_lock(philo->write);
 	timestamp = get_current_time() - philo->start_time;
 	printf("%llu %d %s\n", timestamp, philo->id, status);
-	if (status[0] != 'd')
-		pthread_mutex_unlock(philo->write);
+	pthread_mutex_unlock(philo->write);
 }
 
 void	ft_sleep(t_philo *philo)
@@ -30,7 +29,12 @@ void	ft_sleep(t_philo *philo)
 	print_status("is thinking", philo);
 }
 
-void	switch_fork(t_philo *ph_one, int first_fork, int second_fork)
+void	ft_think(t_philo *philo)
+{
+	print_status("is thinking", philo);
+}
+
+void	take_forks(t_philo *ph_one, int first_fork, int second_fork)
 {
 	pthread_mutex_lock(&ph_one->forks[first_fork]);
 	print_status("has taken a fork", ph_one);
@@ -46,7 +50,7 @@ void	drop_forks(t_philo *philo)
 
 void	ft_eat(t_philo *philo)
 {
-	switch_fork(philo, philo->l_fork, philo->r_fork);
+	take_forks(philo, philo->l_fork, philo->r_fork);
 	print_status("is eating", philo);
 	pthread_mutex_lock(philo->eat);
 	philo->last_meal = get_current_time();
@@ -54,4 +58,6 @@ void	ft_eat(t_philo *philo)
 	sleep_without_delay(philo->time_to_eat);
 	pthread_mutex_unlock(philo->eat);
 	drop_forks(philo);
+	philo->count++;
+	philo->busy = 0;
 }
